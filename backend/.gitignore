@@ -1,0 +1,9 @@
+node_modules
+dist
+
+# ─── ENVIRONMENT / SECRETS ─────────────────────────────────────────────────────
+# Never commit .env files containing secrets (JWT keys, DB credentials, ports).
+# Share schema via .env.example instead.
+.env
+.env.*
+!.env.example
