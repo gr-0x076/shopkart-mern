@@ -96,16 +96,12 @@ const loginCustomer = async (req, res) => {
 
     // 4. Generate JWT and store it in an HttpOnly cookie
     const token = generateToken(customer._id.toString());
+    const isProduction = process.env.NODE_ENV === "production";
     res.cookie("token", token, {
-      // httpOnly: prevents JavaScript from directly reading the cookie value.
-      // This reduces the risk of token theft through client-side scripts,
-      // but does NOT prevent XSS itself — CSP and input sanitization do that.
       httpOnly: true,
-      // secure: false — acceptable because the local dev server runs over HTTP.
-      // In production with HTTPS this MUST be true so the cookie is only
-      // transmitted over encrypted connections.
-      secure: false,
-      sameSite: "lax",  // basic CSRF mitigation for same-site requests
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     // 5. Return success response (token is in HttpOnly cookie)
@@ -129,7 +125,12 @@ const getMyProfile = async (req, res) => {
 
 // ─── LOGOUT ───────────────────────────────────────────────────────────────────
 const logoutCustomer = async (req, res) => {
-  res.clearCookie("token");
+  const isProduction = process.env.NODE_ENV === "production";
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+  });
   res.json({
     success: true,
     message: "Logged out successfully",
